@@ -1,5 +1,55 @@
 " Make Vim more useful
 set nocompatible
+
+filetype off                  " required
+
+" set the runtime path to include Vundle and initialize
+set rtp+=~/.vim/bundle/Vundle.vim
+call vundle#begin()
+
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
+
+" add all your plugins here (note older versions of Vundle
+" used Bundle instead of Plugin)
+
+Plugin 'tmhedberg/SimpylFold'
+Plugin 'vim-scripts/indentpython.vim'
+Plugin 'Valloric/YouCompleteMe'
+Plugin 'vim-syntastic/syntastic'
+Plugin 'nvie/vim-flake8'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
+highlight BadWhitespace ctermbg=red guibg=darkred
+" set PEP8 indentation for python
+au BufNewFile,BufRead *.py set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=79 expandtab autoindent fileformat=unix
+" set indentation for full stack dev
+au BufNewFile,BufRead *.js,*.html,*.css set tabstop=2 softtabstop=2 shiftwidth=2
+" mark bad white spaces
+au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
+let g:ycm_autoclose_preview_window_after_completion=1
+map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
+"python with virtualenv support
+python3 << EOF
+import os
+import sys
+if 'VIRTUAL_ENV' in os.environ:
+  project_base_dir = os.environ['VIRTUAL_ENV']
+  activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+  execfile(activate_this, dict(__file__=activate_this))
+EOF
+let python_highlight_all=1
+"split navigations
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
+" Enable folding
+set foldmethod=indent
+set foldlevel=99
+nnoremap <space> za
 " Use the OS clipboard by default (on versions compiled with `+clipboard`)
 set clipboard=unnamed
 " Enhance command-line completion
@@ -20,15 +70,11 @@ let mapleader=","
 set binary
 set noeol
 " Centralize backups, swapfiles and undo history
-""set backupdir=~/.vim/backups
-""set directory=~/.vim/swaps
-""if exists("&undodir")
-""	set undodir=~/.vim/undo
-""endif
-
-" Don’t create backups when editing files in certain directories
-"" set backupskip=/tmp/*,/private/tmp/*
-
+set backupdir=~/.vim/backups
+set directory=~/.vim/swaps
+if exists("&undodir")
+	set undodir=~/.vim/undo
+endif
 " Respect modeline in files
 set modeline
 set modelines=4
@@ -42,10 +88,7 @@ syntax on
 " Highlight current line
 set cursorline
 " Make tabs as wide as two spaces
-"" set tabstop=2
-" Show “invisible” characters
-""set lcs=tab:▸\ ,trail:·,eol:¬,nbsp:_
-""set list
+set tabstop=2
 " Highlight searches
 set hlsearch
 " Ignore case of searches
@@ -97,3 +140,6 @@ if has("autocmd")
 	" Treat .md files as Markdown
 	autocmd BufNewFile,BufRead *.md setlocal filetype=markdown
 endif
+
+set ai
+set si

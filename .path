@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# add java to path
+#export JAVA_HOME=/usr/bin/java
+#export PATH=$PATH:$JAVA_HOME
