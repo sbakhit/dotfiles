@@ -1,37 +1,5 @@
 #!/usr/bin/env bash
 
-# aspire exports
-export ASPIRE_POSTGRES_USERNAME=postgres
-export ASPIRE_POSTGRES_PASSWORD=postgres
-export ASPIRE_POSTGRES_DATABASE=postgres
-export ASPIRE_POSTGRES_HOST=localhost
-
-#export ASPIRE_POSTGRES_USERNAME=aspirebakhitdev
-#export ASPIRE_POSTGRES_PASSWORD=12345678
-#export ASPIRE_POSTGRES_DATABASE=aspirebakhitdev
-#export ASPIRE_POSTGRES_HOST=aspirebakhitdev.cpgip5rco17i.ca-central-1.rds.amazonaws.com
-export ASPIRE_AWS_MEDIA_BUCKET=aspire-bakhit-dev
-export ASPIRE_JWT_SECRET=jlskdfhaskjkuhksfhyiughdutujfoewuotihklbjytknvksdihugkhg
-
-# udagram exports
-export POSTGRES_USERNAME=udagrambakhitdev
-export POSTGRES_PASSWORD=12345678
-export POSTGRES_DATABASE=udagrambakhitdev
-export POSTGRES_HOST=udagrambakhitdev.cpgip5rco17i.ca-central-1.rds.amazonaws.com
-export AWS_REGION=ca-central-1
-export AWS_PROFILE=default
-export AWS_MEDIA_BUCKET=udagram-bakhit-dev
-export JWT_SECRET=jlskdfhaskjkuhksfhyiughdutujfoewuotihklbjytknvksdihugkhg
-
-# other expoerts
-export POSTGRESS_USERNAME=${POSTGRES_USERNAME}
-export POSTGRESS_PASSWORD=${POSTGRES_PASSWORD}
-export POSTGRESS_DB=${POSTGRES_DATABASE}
-export POSTGRESS_DATABASE=${POSTGRES_DATABASE}
-export POSTGRESS_HOST=${POSTGRES_HOST}
-export AWS_BUCKET=${AWS_MEDIA_BUCKET}
-export URL=http://localhost:8080
-
 # Make vim the default editor.
 export EDITOR='vim';
 

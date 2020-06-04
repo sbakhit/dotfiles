@@ -2,10 +2,6 @@
 [ -d $HOME/bin ] && export PATH="$HOME/bin:$PATH";
 # Add `~/.local/bin` to the `$PATH` if it exists
 [ -d $HOME/.local/bin ] && export PATH="$HOME/.local/bin:$PATH";
-# Add `/usr/local/cuda-10.1/bin/` to the `$PATH` if it exists
-[ -d /usr/local/cuda-10.1/bin ] && export PATH="/usr/local/cuda-10.1/bin:$PATH";
-# Add `/usr/local/go/bin/` to the `$PATH` if it exists
-[ -d /usr/local/go/bin ] && export PATH="/usr/local/go/bin:$PATH";
 
 # Load the shell dotfiles, and then some:
 # * ~/.path can be used to extend `$PATH`.
@@ -38,23 +34,3 @@ fi;
 
 # Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
 [ -e "$HOME/.ssh/config" ] && complete -o "default" -o "nospace" -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" scp sftp ssh;
-
-# kubectl bash completion
-source <(kubectl completion bash)
-
-# helm bash completion
-source <(helm completion bash)
-
-# kubeone bash completion
-source <(kubeone completion bash)
-
-# minikube bash completion
-source <(minikube completion bash)
-
-# leetcode bash completion
-source <(leetcode completion)
-
-# source vte.sh for tilix terminal
-if [ $TILIX_ID ] || [ $VTE_VERSION ]; then
-        source /etc/profile.d/vte.sh
-fi
