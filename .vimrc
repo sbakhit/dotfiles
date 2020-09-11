@@ -36,7 +36,10 @@ let g:rainbow_active = 1
 " --- PLUGIN CONFIGURATION ---
 
 " set PEP8 indentation for python
-au BufNewFile,BufRead *.py set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=79 expandtab autoindent fileformat=unix
+au BufNewFile,BufRead *.py set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=81 expandtab autoindent fileformat=unix
+
+" set indentation for c/h
+au BufNewFile,BufRead *.c,*.cpp,*h,*virl set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab autoindent
 
 " set indentation for full stack dev
 au BufNewFile,BufRead *.js,*.html,*.css set tabstop=2 softtabstop=2 shiftwidth=2

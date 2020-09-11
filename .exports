@@ -21,3 +21,6 @@ export LESS_TERMCAP_md="${yellow}";
 
 # Don’t clear the screen after quitting a manual page.
 export MANPAGER='less -X';
+
+# enable mosh
+export export LD_LIBRARY_PATH=$HOME/local/lib
