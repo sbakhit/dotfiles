@@ -1,5 +1,7 @@
 # Add `~/bin` to the `$PATH` if it exists
 [ -d $HOME/bin ] && export PATH="$HOME/bin:$PATH";
+# Add `~/.bin` to the `$PATH` if it exists
+[ -d $HOME/.bin ] && export PATH="$HOME/.bin:$PATH";
 # Add `~/.local/bin` to the `$PATH` if it exists
 [ -d $HOME/.local/bin ] && export PATH="$HOME/.local/bin:$PATH";
 # Add `~/local/bin` to the `$PATH` if it exists
@@ -36,3 +38,18 @@ fi;
 
 # Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
 [ -e "$HOME/.ssh/config" ] && complete -o "default" -o "nospace" -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2- | tr ' ' '\n')" scp sftp ssh;
+
+# brew
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Add brew completion
+[[ -r "/opt/homebrew/etc/profile.d/bash_completion.sh" ]] && . "/opt/homebrew/etc/profile.d/bash_completion.sh"
+
+# Add `mysql-client@8.4` to the `$PATH` if it exists
+[ -d /opt/homebrew/opt/mysql-client@8.4 ] && export PATH="/opt/homebrew/opt/mysql-client@8.4/bin:$PATH";
+
+# Add `node@22` to the `$PATH` if it exists
+[ -d /opt/homebrew/opt/node@22 ] && export PATH="/opt/homebrew/opt/node@22/bin:$PATH";
+
+# Add `gnu-tar` to the `$PATH` if it exists
+[ -d /opt/homebrew/opt/gnu-tar ] && export PATH="/opt/homebrew/opt/gnu-tar/libexec/gnubin:$PATH";
