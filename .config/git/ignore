@@ -1,0 +1,13 @@
+# Global gitignore (git reads ~/.config/git/ignore without any config)
+
+# Windows adds these when files are copied into WSL
+*:Zone.Identifier
+
+# Editor swap and backup files
+*.swp
+*.swo
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db

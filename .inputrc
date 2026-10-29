@@ -1,0 +1,25 @@
+# Readline settings, used by bash and other programs that read input lines
+
+# Keep the system defaults (Home/End, Ctrl+arrow word movement, …)
+$include /etc/inputrc
+
+# Make Tab autocomplete regardless of filename case
+set completion-ignore-case on
+
+# Treat hyphens and underscores as equivalent when completing
+set completion-map-case on
+
+# List all matches in case multiple possible completions are possible
+set show-all-if-ambiguous on
+
+# Color completions by file type, like `ls`, and highlight the typed prefix
+set colored-stats on
+set colored-completion-prefix on
+
+# Add a trailing slash when completing a symlink to a directory
+set mark-symlinked-directories on
+
+# Use the text that has already been typed as the prefix for searching through
+# commands (i.e. more intelligent Up/Down behavior)
+"\e[A": history-search-backward
+"\e[B": history-search-forward

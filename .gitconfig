@@ -1,0 +1,22 @@
+[user]
+  name = Saleh Bakhit
+  # The email is set per machine in ~/.gitconfig.local. Without one, refuse
+  # to commit rather than guess an address from the hostname.
+  useConfigOnly = true
+[core]
+  editor = vim
+  autocrlf = input
+[init]
+  defaultBranch = main
+[push]
+  # Set the upstream on the first `git push` of a new branch
+  autoSetupRemote = true
+[fetch]
+  # Drop remote-tracking branches that were deleted on the remote
+  prune = true
+
+# Machine-specific or private settings (not in the dotfiles repo)
+[include]
+  path = ~/.gitconfig.local
+[diff]
+  tool = vimdiff

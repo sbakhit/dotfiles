@@ -1,29 +1,32 @@
 set nocompatible              " be iMproved, required
-filetype off                  " required
 
-" set the runtime path to include Vundle and initialize
-set rtp+=~/.vim/bundle/Vundle.vim
-call vundle#begin()
+" All autocommands below go in this group, so re-sourcing doesn't duplicate them
+augroup vimrc
+  autocmd!
+augroup END
 
-" let Vundle manage Vundle, required
-Plugin 'VundleVim/Vundle.vim'
+" --- PLUGINS (vim-plug) ---
+" Download vim-plug on first run
+if empty(glob('~/.vim/autoload/plug.vim'))
+  silent !curl -fsSLo ~/.vim/autoload/plug.vim --create-dirs
+    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+endif
 
-" add all your plugins here (note older versions of Vundle
-" used Bundle instead of Plugin)
+if filereadable(expand('~/.vim/autoload/plug.vim'))
+  " Plugins live outside ~/.vim, which is symlinked into the dotfiles repo
+  call plug#begin('~/.local/share/vim/plugged')
+  Plug 'preservim/nerdtree'
+  Plug 'frazrepo/vim-rainbow'
+  Plug 'preservim/nerdcommenter'
+  call plug#end()
 
-Plugin 'preservim/nerdtree'
-Plugin 'frazrepo/vim-rainbow'
-Plugin 'preservim/nerdcommenter'
-"Plugin 'tmhedberg/SimpylFold'
-"Plugin 'vim-scripts/indentpython.vim'
-"Plugin 'valloric/youcompleteme'
-"Plugin 'vim-syntastic/syntastic'
-"Plugin 'nvie/vim-flake8'
+  " Install any missing plugins on startup
+  autocmd vimrc VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+    \| PlugInstall --sync | source $MYVIMRC
+  \| endif
+endif
 
-" All of your Plugins must be added before the following line
-call vundle#end()            " required
-filetype plugin indent on    " required
-highlight BadWhitespace ctermbg=red guibg=darkred
+filetype plugin indent on
 
 " --- PLUGIN CONFIGURATION ---
 " nerdtree
@@ -37,33 +40,19 @@ let g:rainbow_ctermfgs = ['brown', 'darkblue', 'darkgreen', 'darkcyan', 'darkred
 " --- PLUGIN CONFIGURATION ---
 
 " set PEP8 indentation for python
-au BufNewFile,BufRead *.py set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=81 expandtab autoindent fileformat=unix
+autocmd vimrc FileType python setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=81 expandtab autoindent fileformat=unix
 
-" set indentation for c/h
-au BufNewFile,BufRead *.c,*.cpp,*.cc,*h,*virl,*json set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab autoindent
-"
+" set indentation for c/h and json
+autocmd vimrc FileType c,cpp,json setlocal tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab autoindent
+
 " set indentation for yaml
-au BufNewFile,BufRead *yaml set tabstop=2 softtabstop=2 shiftwidth=2 expandtab autoindent
+autocmd vimrc FileType yaml setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab autoindent
 
 " set indentation for full stack dev
-au BufNewFile,BufRead *.js,*.html,*.css set tabstop=2 softtabstop=2 shiftwidth=2
+autocmd vimrc FileType javascript,html,css setlocal tabstop=2 softtabstop=2 shiftwidth=2
 
-" mark bad white spaces
-au BufRead,BufNewFile *.py,*.pyw,*.c,*.h match BadWhitespace /\s\+$/
-
-"let g:ycm_autoclose_preview_window_after_completion=1
-"map <leader>g  :YcmCompleter GoToDefinitionElseDeclaration<CR>
-
-""python with virtualenv support
-"python3 << EOF
-"import os
-"import sys
-"if 'VIRTUAL_ENV' in os.environ:
-  "project_base_dir = os.environ['VIRTUAL_ENV']
-  "activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
-  "execfile(activate_this, dict(__file__=activate_this))
-"EOF
-"let python_highlight_all=1
+" mark bad white spaces (.h files are detected as cpp)
+autocmd vimrc FileType python,c,cpp match BadWhitespace /\s\+$/
 
 "split navigations
 nnoremap <C-J> <C-W><C-J>
@@ -76,20 +65,37 @@ set foldmethod=indent
 set foldlevel=99
 nnoremap <space> za
 
-" Use the OS clipboard by default (on versions compiled with `+clipboard`)
-set clipboard=unnamed
+" Copy yanks to the system clipboard. Use vim's own clipboard support when it
+" works (macOS, or a Linux desktop with an X11-enabled vim). Otherwise (WSL,
+" SSH, servers) send yanks to the terminal with the OSC 52 escape sequence, and
+" paste with the terminal's own shortcut, e.g. Ctrl+Shift+V.
+if has('clipboard_working')
+  set clipboard^=unnamed
+  if has('unnamedplus')
+    set clipboard^=unnamedplus
+  endif
+elseif has('clipboard_provider')
+  packadd osc52
+  set clipmethod=osc52
+  " Its terminal detection doesn't work inside tmux
+  let g:osc52_force_avail = 1
+  " Windows Terminal doesn't answer clipboard reads, so don't wait for one
+  let g:osc52_disable_paste = 1
+  autocmd vimrc TextYankPost * if v:event.operator ==# 'y' && v:event.regname ==# ''
+    \| call setreg('+', getreg('"'), getregtype('"'))
+  \| endif
+elseif exists('*echoraw')
+  " Older vim without the osc52 package: send the escape sequence directly
+  autocmd vimrc TextYankPost * if v:event.operator ==# 'y' && v:event.regname ==# ''
+    \| call echoraw("\e]52;c;" . system("base64 | tr -d '\\n'", getreg('"')) . "\x07")
+  \| endif
+endif
 
 " Enhance command-line completion
 set wildmenu
 
-" Allow cursor keys in insert mode
-set esckeys
-
 " Allow backspace in insert mode
 set backspace=indent,eol,start
-
-" Optimize for fast terminal connections
-set ttyfast
 
 " Add the g flag to search/replace by default
 set gdefault
@@ -100,24 +106,22 @@ set encoding=utf-8 nobomb
 " Change mapleader
 let mapleader=","
 
-" Don’t add empty newlines at the end of files
-set binary
-set noeol
+" Don’t add a newline at the end of files that don’t have one
+set nofixendofline
 
-" Centralize backups, swapfiles and undo history
-"set backupdir=~/.vim/backups
-"set directory=~/.vim/swaps
-"if exists("&undodir")
-	"set undodir=~/.vim/undo
-"endif
+" Centralize backups, swapfiles and undo history (outside the dotfiles repo)
+let s:state_dir = expand('~/.local/state/vim')
+for s:dir in ['backup', 'swap', 'undo']
+  call mkdir(s:state_dir . '/' . s:dir, 'p', 0700)
+endfor
+let &backupdir = s:state_dir . '/backup//'
+let &directory = s:state_dir . '/swap//'
+let &undodir = s:state_dir . '/undo//'
+set undofile
 
 " Respect modeline in files
 set modeline
 set modelines=4
-
-" Enable per-directory .vimrc files and disable unsafe commands in them
-set exrc
-set secure
 
 " Enable line numbers
 set number
@@ -128,6 +132,8 @@ if !exists("g:syntax_on")
 endif
 
 " choose colorscheme
+" The colorscheme clears custom highlight groups, so define them afterwards
+autocmd vimrc ColorScheme * highlight BadWhitespace ctermbg=red guibg=darkred
 set background=dark
 colorscheme solarized
 
@@ -176,7 +182,6 @@ set showcmd
 " Use relative line numbers
 if exists("&relativenumber")
 	set relativenumber
-	au BufReadPost * set relativenumber
 endif
 
 " Start scrolling three lines before the horizontal window border
@@ -192,15 +197,5 @@ function! StripWhitespace()
 endfunction
 noremap <leader>ss :call StripWhitespace()<CR>
 
-" Automatic commands
-if has("autocmd")
-	" Enable file type detection
-	filetype on
-	" Treat .json files as .js
-	autocmd BufNewFile,BufRead *.json setfiletype json syntax=javascript
-	" Treat .md files as Markdown
-	autocmd BufNewFile,BufRead *.md setlocal filetype=markdown
-endif
-
-set ai
-set si
+" Copy indent from the current line when starting a new one
+set autoindent

@@ -1,5 +1,4 @@
-.DS_Store
-.project
-*.pyc
-*.class
-*.o
+# Files vim writes into ~/.vim, which is symlinked to this repo's .vim
+.vim/autoload/plug.vim*
+.vim/.netrwhist
+.vim/**/doc/tags

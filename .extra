@@ -1,1 +1,118 @@
 #!/usr/bin/env bash
+
+# Integration with the desktop the shell runs on: Windows (under WSL, any
+# distro), macOS, or a Linux desktop or server. Provides `open`, `pbcopy` and
+# `pbpaste` everywhere; macOS has all three built in.
+
+# Copy stdin to the clipboard with the OSC 52 escape sequence: the terminal does
+# the copying, so this also works inside tmux and over SSH. Windows Terminal,
+# iTerm2, kitty, WezTerm and Alacritty support it; GNOME Terminal doesn’t.
+function __osc52_copy() {
+	printf '\e]52;c;%s\a' "$(base64 | tr -d '\n')" > /dev/tty;
+}
+
+if [ -n "${WSL_DISTRO_NAME}" ]; then
+
+	# Windows programs are called by absolute path, so they work even when
+	# /etc/wsl.conf sets `appendWindowsPath=false` (which makes tab completion
+	# much faster). wslpath knows where the C: drive is mounted, usually /mnt/c.
+	__win_c="$(wslpath -u 'C:\' 2> /dev/null)";
+	__win_c="${__win_c%/}";
+
+	# Windows home directory, e.g. /mnt/c/Users/<you>. Looking it up starts
+	# cmd.exe, which is slow, so the answer is cached.
+	winhome_cache="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles/winhome";
+	if [ ! -s "${winhome_cache}" ]; then
+		# Run cmd.exe from the C: drive so it doesn’t complain about UNC paths
+		winprofile="$(cd "${__win_c}/" && "${__win_c}/Windows/System32/cmd.exe" /c 'echo %USERPROFILE%' 2> /dev/null | tr -d '\r')";
+		if [ -n "${winprofile}" ]; then
+			mkdir -p "${winhome_cache%/*}";
+			wslpath -u "${winprofile}" > "${winhome_cache}";
+		fi;
+		unset winprofile;
+	fi;
+	[ -s "${winhome_cache}" ] && export WINHOME="$(< "${winhome_cache}")";
+	unset winhome_cache;
+
+	if [ -n "${WINHOME}" ]; then
+		# Shortcuts to the Windows Downloads and Desktop folders
+		alias dl='cd "${WINHOME}/Downloads"';
+		alias dt='cd "${WINHOME}/Desktop"';
+
+		# `code .` opens VS Code (connected to WSL)
+		path_append "${WINHOME}/AppData/Local/Programs/Microsoft VS Code/bin";
+	fi;
+
+	# Open files, directories or URLs with their default Windows app
+	function open() {
+		local target;
+		for target in "${@:-.}"; do
+			[[ "${target}" == *://* ]] || target="$(wslpath -w "${target}")" || continue;
+			"${__win_c}/Windows/explorer.exe" "${target}";
+		done;
+		return 0; # explorer.exe exits 1 even when it succeeds
+	}
+
+	# Copy stdin to the Windows clipboard. Unlike clip.exe, OSC 52 doesn’t
+	# mangle non-ASCII text.
+	function pbcopy() {
+		__osc52_copy;
+	}
+
+	# Print the Windows clipboard
+	function pbpaste() {
+		"${__win_c}/Windows/System32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -NonInteractive \
+			-Command '[Console]::OutputEncoding = [Text.Encoding]::UTF8; Get-Clipboard -Raw' | sed 's/\r$//';
+	}
+
+	# Tell Windows Terminal the current directory, so “Duplicate tab” and new
+	# panes start there. tmux doesn’t pass this through, so skip it inside tmux.
+	if [ -n "${WT_SESSION}" ] && [ -z "${TMUX}" ]; then
+		function __wt_report_cwd() {
+			printf '\e]9;9;%s\e\\' "$(wslpath -w "${PWD}")";
+		}
+		[[ "${PROMPT_COMMAND}" == *__wt_report_cwd* ]] || \
+			PROMPT_COMMAND="__wt_report_cwd${PROMPT_COMMAND:+; ${PROMPT_COMMAND}}";
+	fi;
+
+elif [[ "${OSTYPE}" != darwin* ]]; then
+
+	# Open files, directories or URLs with their default app
+	if command -v xdg-open > /dev/null; then
+		function open() {
+			local target;
+			for target in "${@:-.}"; do
+				xdg-open "${target}" > /dev/null 2>&1;
+			done;
+		}
+	fi;
+
+	# Use the desktop clipboard when there is one (Wayland, then X11), and the
+	# terminal’s otherwise, e.g. over SSH
+	function pbcopy() {
+		if [ -n "${WAYLAND_DISPLAY}" ] && command -v wl-copy > /dev/null; then
+			wl-copy;
+		elif [ -n "${DISPLAY}" ] && command -v xclip > /dev/null; then
+			xclip -selection clipboard;
+		else
+			__osc52_copy;
+		fi;
+	}
+
+	function pbpaste() {
+		if [ -n "${WAYLAND_DISPLAY}" ] && command -v wl-paste > /dev/null; then
+			wl-paste --no-newline;
+		elif [ -n "${DISPLAY}" ] && command -v xclip > /dev/null; then
+			xclip -selection clipboard -o;
+		else
+			echo "pbpaste: no clipboard to read from (install wl-clipboard or xclip)" >&2;
+			return 1;
+		fi;
+	}
+
+fi;
+
+# Private or machine-specific settings that shouldn’t be committed
+if [ -r ~/.extra.local ]; then
+	source ~/.extra.local;
+fi;

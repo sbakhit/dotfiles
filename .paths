@@ -1,1 +1,44 @@
 #!/usr/bin/env bash
+
+# `$PATH` setup. Sourced first by ~/.bash_profile, so the other dotfiles can
+# rely on it.
+
+# Add a directory to the start or end of `$PATH` if it exists and isn’t already
+# there (so `reload` doesn’t keep stacking duplicates)
+function path_prepend() {
+	[ -d "$1" ] || return 0;
+	case ":${PATH}:" in
+		*":$1:"*) ;;
+		*) PATH="$1${PATH:+:${PATH}}" ;;
+	esac;
+}
+function path_append() {
+	[ -d "$1" ] || return 0;
+	case ":${PATH}:" in
+		*":$1:"*) ;;
+		*) PATH="${PATH:+${PATH}:}$1" ;;
+	esac;
+}
+
+# Homebrew (macOS, or Homebrew on Linux)
+for prefix in /opt/homebrew /usr/local /home/linuxbrew/.linuxbrew; do
+	if [ -x "${prefix}/bin/brew" ]; then
+		export HOMEBREW_PREFIX="${prefix}";
+		path_prepend "${prefix}/sbin";
+		path_prepend "${prefix}/bin";
+		break;
+	fi;
+done;
+unset prefix;
+
+# Personal bin directories (each one added goes in front of the previous)
+path_prepend "$HOME/bin";
+path_prepend "$HOME/.bin";
+path_prepend "$HOME/.local/bin";
+path_prepend "$HOME/local/bin";
+
+# Go toolchain, and the programs `go install` builds
+path_append "/usr/local/go/bin";
+command -v go > /dev/null && path_append "$(go env GOPATH)/bin";
+
+export PATH;
